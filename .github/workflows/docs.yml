@@ -1,0 +1,42 @@
+name: Generate Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'modules/**'
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    name: Auto-generate Module Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+
+      - name: Generate terraform-docs — VPC
+        uses: terraform-docs/gh-actions@v1.3.0
+        with:
+          working-dir: modules/vpc
+          output-file: README.md
+          output-method: inject
+          git-push: false
+
+      - name: Generate terraform-docs — S3
+        uses: terraform-docs/gh-actions@v1.3.0
+        with:
+          working-dir: modules/s3
+          output-file: README.md
+          output-method: inject
+          git-push: false
+
+      - name: Commit and Push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: auto-generate module documentation"
+          file_pattern: "modules/*/README.md"
